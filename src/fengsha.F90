@@ -1,31 +1,8 @@
 module dust_fengsha_mod
 
-  subroutine fengsha_drag(z0,R)
-    implicit none
-
-    real(kind_phys), intent(in) :: z0
-    real(kind_phys), intent(out) :: R
-    real(kind_phys), parameter :: z0s = 1.0e-04 !Surface roughness for ideal bare surface [m]
-    ! ------------------------------------------------------------------------
-    ! Function: Calculates the MacKinnon et al. 2004 Drag Partition Correction
-    !
-    !   R = 1.0 - log(z0 / z0s) / log( 0.7 * (12255./z0s) ** 0.8)
-    !
-    !--------------------------------------------------------------------------
-    ! Drag partition correction. See MacKinnon et al. (2004),
-    !     doi:10.1016/j.geomorph.2004.03.009
-    R = 1.0 - log(z0 / z0s) / log( 0.7 * (12255./z0s) ** 0.8)
-
-    ! Drag partition correction. See Marticorena et al. (1997),
-    !     doi:10.1029/96JD02964
-    !R = 1.0 - log(z0 / z0s) / log( 0.7 * (10./z0s) ** 0.8)
-
-    return
-  end subroutine fengsha_drag
-
   subroutine DustEmissionFENGSHA(slc, clay, silt,  &
                                   ssm, rdrag, airdens, ustar, uthrs, alpha, gamma, &
-                                  kvhmax, grav, rhop, area, upper_bin, lower_bin, reff, emissions)
+                                  kvhmax, grav, rhop, area, upper_bin, lower_bin, reff, fecan_soil_moisture, emissions)
     
     ! !USES:
     implicit NONE
@@ -49,6 +26,7 @@ module dust_fengsha_mod
     real(kind_phys), dimension(:), intent(in) :: upper_bin ! upper bin size 
     real(kind_phys), dimension(:), intent(in) :: reff ! upper bin size 
     real(kind_phys), dimension(:), intent(in) :: lower_bin ! lower bin size 
+    logical        , dimension(:), intent(in) :: fecan_soil_moisture ! use fecan soil mositure or shao soil moisture
     
     ! !OUTPUT PARAMETERS:
     REAL(kind_phys), dimension(:), intent(inout) :: emissions ! binned surface emissions [kg/(m^2 sec)]
@@ -70,6 +48,8 @@ module dust_fengsha_mod
     real(kind_phys)                  :: total_emissions
     real(kind_phys)                  :: u_sum, u_thresh
     
+    REAL(kind_phys), parameter:: clay_thresh = 0.2
+    
 !EOP
 !-------------------------------------------------------------------------
 !  Begin
@@ -84,7 +64,11 @@ module dust_fengsha_mod
 
    ! Compute vertical-to-horizontal mass flux ratio
    ! ----------------------------------------------
-   kvh = DustFluxV2HRatioMB95(clay, kvhmax)
+   if (clay > clay_thresh) then
+       kvh = kvhmax
+   else
+       kvh = 10.0**(13.4*clay-6.0)
+   end if
 
    ! Compute total emissions
    ! -----------------------
@@ -98,8 +82,13 @@ module dust_fengsha_mod
    !  ----------------------------------------------
    ! Fecan moisture correction
    ! -------------------------
-   h = moistureCorrectionFecan(slc, sand, clay, rhop)
-   
+   if (fecan_soil_moisture .eq. .true.) then
+     h = moistureCorrectionFecan(slc, sand, clay, rhop)
+   else
+   ! Shao soil mositure
+   !--------------------
+     if (slc <= 0.03) then
+          h = 
    ! Adjust threshold
    ! ----------------
    u_thresh = uthrs * h
