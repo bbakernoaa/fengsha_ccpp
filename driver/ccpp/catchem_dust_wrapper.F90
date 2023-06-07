@@ -4,12 +4,11 @@
 
 module catchem_chem_dust_wrapper
 
-   use physcons,        only : g => con_g, pi => con_pi
-   use machine ,        only : kind_phys
-   use CATChem_config
+   use catchem_constants, only : kind_phys => kind_chem, g => con_g, pi => con_pi
+   use catchem_config
 !    use dust_gocart_mod, only : gocart_dust_driver (comment out for now)
 !    use dust_afwa_mod,   only : gocart_dust_afwa_driver (comment out for now)
-   use dust_fengsha_mod,only : DustEmissionFENGSHA
+   use dust_fengsha_mod, only : DustEmissionFENGSHA
    use dust_data_mod
 
    implicit none
@@ -42,14 +41,15 @@ contains
 !!
 !>\section catchem_chem_dust_wrapper catchem Chemistry Scheme General Algorithm
 !> @{
-   subroutine catchem_chem_dust_wrapper_run(im, kte, kme, ktau, dt, garea, land,                           &
-                                            ustar,               &
-                                            pr3d, ph3d,phl3d, prl3d, tk3d, us3d, vs3d, spechum,            &
-                                            nsoil, smc, vegtype, soiltyp, snow_cplchm,             &
-                                            dust_in, ntrac, ntdust1,ntdust2,ntdust3,ntdust4,ntdust5,ndust  &
-                                            gq0,qgrs,duem, chem_opt_in,dust_opt_in,       &
-                                            dust_alpha_in,dust_gamma_in,pert_scale_dust,                   &
-                                            emis_amp_dust, do_sppt_emis, sppt_wts, errmsg,errflg)
+   subroutine catchem_chem_dust_wrapper_run( &
+      im, kte, kme, ktau, dt, garea, land, &
+      ustar, &
+      pr3d, ph3d,phl3d, prl3d, tk3d, us3d, vs3d, spechum, &
+      nsoil, smc, vegtype, soiltyp, snow_cplchm, &
+      dust_in, ntrac, ntdust1,ntdust2,ntdust3,ntdust4,ntdust5,ndust, &
+      gq0,qgrs,duem, chem_opt_in,dust_opt_in, &
+      dust_alpha_in,dust_gamma_in,pert_scale_dust, &
+      emis_amp_dust, do_sppt_emis, sppt_wts, errmsg,errflg)
 
       implicit none
 
@@ -77,6 +77,11 @@ contains
       ! surface description params
       integer, dimension(im), intent(in) :: land          ! landmask: sea/land/ice=0/1/2
       integer, dimension(im), intent(in) :: soiltyp       ! soil type at each grid cell
+      integer, dimension(im), intent(in) :: vegtype       ! veg type at each grid cell
+
+      integer, parameter :: ids=1, jds=1, jde=1, kds=1
+      integer, parameter :: ims=1, jms=1, jme=1, kms=1
+      integer, parameter :: its=1, jts=1, jte=1, kts=1
 
       real(kind=kind_phys), dimension(im), intent(in) :: garea  ! grid cell area
       real(kind=kind_phys), dimension(ims:im, jms:jme) :: vegfrac
@@ -109,10 +114,6 @@ contains
       real(kind_phys) :: dtstep
 
       ! Local Variables 
-      integer, parameter :: ids=1,jds=1,jde=1, kds=1
-      integer, parameter :: ims=1,jms=1,jme=1, kms=1
-      integer, parameter :: its=1,jts=1,jte=1, kts=1
-
       real(kind_phys) :: curr_secs
       real(kind_phys) :: factor, factor2, factor3
       logical :: store_arrays
@@ -144,7 +145,7 @@ contains
       real(kind_phys), dimension(1:im, 1:kme,jms:jme) :: rri, t_phy, u_phy, v_phy,       &
          p_phy, z_at_w, dz8w, p8w, t8w, rho_phy
 
-      real(kind_phys), dimension(ims:im, jms:jme) :: ust, tsk, dxy
+      real(kind_phys), dimension(ims:im, jms:jme) :: ust, dxy
       real(kind_phys), parameter :: conver=1.e-9
       real(kind_phys), parameter :: converi=1.e9
       !================================================================================
@@ -155,11 +156,11 @@ contains
 
       chem_opt          = chem_opt_in
       dust_opt          = dust_opt_in
-      dust_calcdrag     = dust_calcdrag_in
+      ! dust_calcdrag     = dust_calcdrag_in
       chem = 0.
 
       ! -- initialize dust emissions
-      emis_dust = 0._kind_phys
+      dust_emis = 0._kind_phys
 
       ! -- set domain
       ide=im
@@ -211,8 +212,11 @@ contains
          do j=jts,jte
             do i=its,ite
 
-               call DustEmissionFENGSHA(smois(i,j), clayf(i,j), sandf(i,j), ssm(i,j), rdrag(i,j), rho_phy(i,j,1), ust(i,j), uthr(i,j), dust_emis(i,j,:))
-               dust_emis(i,j,:) = dust_emis(i,j,:) * dxy(i,j) * dt * random_factor ! for sppt if activated
+               call DustEmissionFENGSHA(smois(i,1,j), clayf(i,j), sandf(i,j), ssm(i,j), &  ! FIXME: smois has nsoil dim
+                  rdrag(i,j), rho_phy(i,j,1), &
+                  ust(i,j), uthr(i,j), &
+                  dust_emis(i,j,:))
+               dust_emis(i,j,:) = dust_emis(i,j,:) * dxy(i,j) * dt * random_factor(i,j) ! for sppt if activated
 
                ! modify concentrations 
                ! first convert concentrations to kg/kg 
@@ -271,7 +275,7 @@ contains
          enddo
       enddo
 
-      duem(:,:)=ugkg*emis_dust(:,1,1,:)
+      duem(:,:) = ugkg*dust_emis(:,:,1)  ! FIXME
 !
    end subroutine catchem_chem_dust_wrapper_run
 !> @}
@@ -388,7 +392,7 @@ contains
       ! u10            = 0._kind_phys
       ! v10            = 0._kind_phys
       ust            = 0._kind_phys
-      tsk            = 0._kind_phys
+      ! tsk            = 0._kind_phys
       xland          = 0._kind_phys
       ! xlat           = 0._kind_phys
       ! xlong          = 0._kind_phys
@@ -424,7 +428,7 @@ contains
          isltyp (i,1)=soiltyp(i)
       enddo
 
-      rmol=0.
+      ! rmol=0.
 
       do k=1,nsoil
          do j=jts,jte
@@ -475,10 +479,10 @@ contains
                dz8w(i,k,j)=z_at_w(i,kk+1,j)-z_at_w(i,kk,j)
                t_phy(i,k,j)=tk3d(ip,kkp)
                p_phy(i,k,j)=prl3d(ip,kkp)
-               u_phy(i,k,j)=us3d(ip,kkp)
-               v_phy(i,k,j)=vs3d(ip,kkp)
+               ! u_phy(i,k,j)=us3d(ip,kkp)
+               ! v_phy(i,k,j)=vs3d(ip,kkp)
                rho_phy(i,k,j)=p_phy(i,k,j)/(287.04*t_phy(i,k,j)*(1.+.608*spechum(ip,kkp)))
-               rri(i,k,j)=1./rho_phy(i,k,j)
+               ! rri(i,k,j)=1./rho_phy(i,k,j)
                moist(i,k,j,:)=0.
                moist(i,k,j,1)=gq0(ip,kkp,p_atm_shum)
                if (t_phy(i,k,j) > 265.) then
