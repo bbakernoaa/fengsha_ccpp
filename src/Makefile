@@ -29,8 +29,8 @@ PROGRAM := dust_fengsha_mod.mod
 .PHONY: all clean
 all: $(PROGRAM)
 
-$(PROGRAM): $(OBJS_APP) $(OBJS)
-	$(FC) $(FCFLAGS) $^ -o $@ $(LIBS) $(INC)
+$(PROGRAM): $(OBJS)
+	$(FC) $(FCFLAGS) $(LIBS) $(INC) -c $^
 
 %.o: %.F90
 	$(FC) $(FCFLAGS) $(INC) -c $<

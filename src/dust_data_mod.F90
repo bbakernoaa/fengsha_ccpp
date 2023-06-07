@@ -14,7 +14,7 @@ module dust_data_mod
 
    real(kind=kind_chem), parameter :: dust_alpha = 0.3_kind_chem
    real(kind=kind_chem), parameter :: dust_gamma = 1.3_kind_chem
-   real(kind=kind_chem), parameter :: kvhmax = 2e-5_kind_chem
+   real(kind=kind_chem), parameter :: kvhmax = 2e-5_kind_chem  ! max. vertical to horizontal mass flux ratio [1]
    real(kind=kind_chem), parameter :: dust_den = 2650._kind_chem
 
 end module dust_data_mod

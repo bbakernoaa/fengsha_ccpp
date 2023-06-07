@@ -28,7 +28,7 @@ CONTAINS
       real(kind=kind_chem), intent(in) :: airdens  ! air density at lowest level [kg/m^3]
       real(kind=kind_chem), intent(in) :: ustar    ! friction velocity [m/sec]
       real(kind=kind_chem), intent(in) :: uthrs    ! threshold velocity [m/2]
-      real(kind=kind_chem), intent(in) :: kvhmax   ! max. vertical to horizontal mass flux ratio [1]
+      ! real(kind=kind_chem), intent(in) :: kvhmax   ! max. vertical to horizontal mass flux ratio [1]
       ! real(kind=kind_chem), intent(in) :: rhop     ! soil class density [kg/m^3]
       real(kind=kind_chem), intent(in) :: area     ! area of dust emission (can be fractional area of grid cell)
 
@@ -55,14 +55,15 @@ CONTAINS
       ! 09Aug2022 B.Baker/NOAA    - Adapted for CCPP-Physics
 
       ! !Local Variables
-      real(kind=kind_chem)                  :: alpha_grav
-      real(kind=kind_chem)                  :: h
-      real(kind=kind_chem)                  :: kvh
-      real(kind=kind_chem)                  :: q
-      real(kind=kind_chem)                  :: rustar
-      real(kind=kind_chem)                  :: total_emissions
-      real(kind=kind_chem)                  :: u_sum, u_thresh
-      real(kind=kind_chem), dimension(:)    :: distribution
+      real(kind=kind_chem) :: alpha_grav
+      real(kind=kind_chem) :: h
+      real(kind=kind_chem) :: kvh
+      real(kind=kind_chem) :: q
+      real(kind=kind_chem) :: rustar
+      real(kind=kind_chem) :: total_emissions
+      real(kind=kind_chem) :: u_sum, u_thresh
+      real(kind=kind_chem) :: distribution(size(emissions))
+      real(kind=kind_chem) :: vsat, sandfrac, grvsoilm, vsoil, drylimit
 
       real(kind=kind_chem), parameter:: clay_thresh = 0.2
       real(kind=kind_chem), parameter :: rhow = 1000.
@@ -99,7 +100,7 @@ CONTAINS
       !  ----------------------------------------------
       ! Fecan moisture correction
       ! -------------------------
-      if (DUST_OPT_FENGSHA_FECAN .eq. .true.) then
+      if (DUST_OPT_FENGSHA_FECAN .eqv. .true.) then
          !  Saturated volumetric water content (sand-dependent) ! [m3 m-3]
          vsat = 0.489 - 0.00126 * ( 100. * sandfrac )
 
@@ -110,7 +111,7 @@ CONTAINS
          drylimit = clay * (14.0 * clay + 17.0)
 
          !  Compute soil moisture correction
-         h = sqrt(1.0 + 1.21 * max(0., grvsoilm - drylimit)**0.68)
+         h = sqrt(1.0 + 1.21 * max(0._kind_chem, grvsoilm - drylimit)**0.68)
       else
          ! Shao soil mositure
          !--------------------
@@ -129,7 +130,7 @@ CONTAINS
 
       ! Compute Horizontal Saltation Flux according to Eq (9) in Webb et al. (2020)
       ! ---------------------------------------------------------------------------
-      q = max(0., rustar - u_thresh) * u_sum * u_sum
+      q = max(0._kind_chem, rustar - u_thresh) * u_sum * u_sum
 
       ! get distribution 
       call DustAerosolDistributionKok(dust_reff, dust_lower_radius, dust_upper_radius, distribution)
@@ -147,11 +148,11 @@ CONTAINS
       implicit NONE
 
       ! !INPUT PARAMETERS:
-      real, dimension(:), intent(in)  :: radius      ! Dry particle bin effective radius [um]
-      real, dimension(:), intent(in)  :: rLow, rUp   ! Dry particle bin edge radii [um]
+      real(kind=kind_chem), dimension(:), intent(in)  :: radius      ! Dry particle bin effective radius [um]
+      real(kind=kind_chem), dimension(:), intent(in)  :: rLow, rUp   ! Dry particle bin edge radii [um]
 
       ! !OUTPUT PARAMETERS:
-      real, dimension(:), intent(out) :: distribution    ! Normalized dust aerosol distribution [1]
+      real(kind=kind_chem), dimension(:), intent(out) :: distribution    ! Normalized dust aerosol distribution [1]
 
       ! !DESCRIPTION: Computes lognormal aerosol size distribution for dust bins according to
       !               J.F.Kok, PNAS, Jan 2011, 108 (3) 1016-1021; doi:10.1073/pnas.1014798108
@@ -164,13 +165,13 @@ CONTAINS
 
       ! !Local Variables
       integer :: n, nbins
-      real    :: diameter, dlam, dvol
+      real(kind=kind_chem)    :: diameter, dlam, dvol
 
       !   !CONSTANTS
-      real, parameter    :: mmd    = 3.4          ! median mass diameter [um]
-      real, parameter    :: stddev = 3.0          ! geometric standard deviation [1]
-      real, parameter    :: lambda = 12.0         ! crack propagation length [um]
-      real, parameter    :: factor = 1.e0 / (sqrt(2.e0) * log(stddev))  ! auxiliary constant
+      real(kind=kind_chem), parameter    :: mmd    = 3.4          ! median mass diameter [um]
+      real(kind=kind_chem), parameter    :: stddev = 3.0          ! geometric standard deviation [1]
+      real(kind=kind_chem), parameter    :: lambda = 12.0         ! crack propagation length [um]
+      real(kind=kind_chem), parameter    :: factor = 1.e0 / (sqrt(2.e0) * log(stddev))  ! auxiliary constant
 
       character(len=*), parameter :: myname = 'DustAerosolDistributionKok'
 

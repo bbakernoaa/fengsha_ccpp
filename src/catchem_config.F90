@@ -58,7 +58,7 @@ module catchem_config
     integer, parameter :: DUST_OPT_GOCART  = 1
     integer, parameter :: DUST_OPT_AFWA    = 3
     integer, parameter :: DUST_OPT_FENGSHA = 5
-    integer, parameter :: DUST_OPT_FENGSHA_FECAN = .true.
+    logical, parameter :: DUST_OPT_FENGSHA_FECAN = .true.
 
   
     ! -- biomass burning emissions
