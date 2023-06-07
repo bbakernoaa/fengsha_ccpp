@@ -8,7 +8,7 @@ module dust_fengsha_mod
 
    private
 
-   public :: gocart_dust_fengsha_driver
+   public :: DustEmissionFENGSHA
 
 
 CONTAINS
