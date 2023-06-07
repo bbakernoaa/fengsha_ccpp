@@ -1,7 +1,7 @@
 module dust_fengsha_mod
 
-   use chem_config, only chem_kind, DUST_OPT_FENGSHA_FECAN
-   use constants
+   use catchem_config, only: kind_chem, DUST_OPT_FENGSHA_FECAN
+   use catchem_constants
    use dust_data_mod
 
    implicit none
