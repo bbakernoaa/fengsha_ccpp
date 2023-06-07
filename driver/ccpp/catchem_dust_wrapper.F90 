@@ -98,7 +98,7 @@ contains
       real(kind_phys), dimension(ims:im, jms:jme) :: xland            ! landmask: sea/land/ice=0/1/2
       real(kind=kind_phys), dimension(ims:im, jms:jme) :: sandf       ! sand fraction 
       real(kind=kind_phys), dimension(ims:im, jms:jme) :: clayf       ! clay fraction 
-      real(kind_phys), dimension(ims:im, 1:1, jms:jme, 1:num_emis_dust) :: emis_dust
+      real(kind_phys), dimension(ims:im, jms:jme, 1:ndust) :: dust_emis
       real(kind_phys), dimension(ims:im, jms:jme) :: dusthelp
       integer,         dimension(ims:im, jms:jme) :: isltyp, ivgtyp
       real(kind_phys), dimension(ims:im, kms:kme, jms:jme, 1:num_moist)  :: moist
@@ -145,6 +145,8 @@ contains
          p_phy, z_at_w, dz8w, p8w, t8w, rho_phy
 
       real(kind_phys), dimension(ims:im, jms:jme) :: ust, tsk, dxy
+      real(kind_phys), parameter :: conver=1.e-9
+      real(kind_phys), parameter :: converi=1.e9
       !================================================================================
 
 
@@ -202,22 +204,49 @@ contains
 
       !-- compute dust
       !store_arrays = .false.
+      select case (dust_opt)
        case (DUST_OPT_FENGSHA)
         !  dust_alpha    = dust_alpha_in  ! dust_alpha  !!! should be set in the chem side not in the physics side
         !  dust_gamma    = dust_gamma_in  ! dust_alpha  !!! should be set in the chem side not in the physics side
          do j=jts,jte
             do i=its,ite
-               call DustEmissionFENGSHA(smois, clayf, sandf, ssm, rdrag, rho_phy, ust, uthr,  dt,chem,rho_phy,smois,p8w,ssm,   &
-                  isltyp,vegfrac,snowh,xland,dxy,g,emis_dust,ust,znt,         &
-                  clayf,sandf,rdrag,uthr,                                     &
-                  num_emis_dust,num_moist,num_chem,nsoil,                     &
-                  random_factor,                                             )
+
+               call DustEmissionFENGSHA(smois(i,j), clayf(i,j), sandf(i,j), ssm(i,j), rdrag(i,j), rho_phy(i,j,1), ust(i,j), uthr(i,j), dust_emis(i,j,:))
+               dust_emis(i,j,:) = dust_emis(i,j,:) * dxy(i,j) * dt * random_factor ! for sppt if activated
+
+               ! modify concentrations 
+               ! first convert concentrations to kg/kg 
+               chem(i,kts,j,p_dust_1)=chem(i,kts,j,p_dust_1) * 1.0e-9
+               chem(i,kts,j,p_dust_2)=chem(i,kts,j,p_dust_2) * 1.0e-9
+               chem(i,kts,j,p_dust_3)=chem(i,kts,j,p_dust_3) * 1.0e-9
+               chem(i,kts,j,p_dust_4)=chem(i,kts,j,p_dust_4) * 1.0e-9
+               chem(i,kts,j,p_dust_5)=chem(i,kts,j,p_dust_5) * 1.0e-9
+
+               ! now add dust emissions back to cocentration fields
+               chem(i,kts,j,p_dust_1)=chem(i,kts,j,p_dust_1) + dust_emis(i,j,1) / rho_phy(i,j,1)
+               chem(i,kts,j,p_dust_2)=chem(i,kts,j,p_dust_2) + dust_emis(i,j,2) / rho_phy(i,j,1)
+               chem(i,kts,j,p_dust_3)=chem(i,kts,j,p_dust_3) + dust_emis(i,j,1) / rho_phy(i,j,1)
+               chem(i,kts,j,p_dust_4)=chem(i,kts,j,p_dust_4) + dust_emis(i,j,1) / rho_phy(i,j,1)
+               chem(i,kts,j,p_dust_5)=chem(i,kts,j,p_dust_5) + dust_emis(i,j,1) / rho_phy(i,j,1)
+
+               ! convert concentrations back to ug/kg 
+               chem(i,kts,j,p_dust_1)=chem(i,kts,j,p_dust_1) * 1.e9
+               chem(i,kts,j,p_dust_2)=chem(i,kts,j,p_dust_2) * 1.e9
+               chem(i,kts,j,p_dust_3)=chem(i,kts,j,p_dust_3) * 1.e9
+               chem(i,kts,j,p_dust_4)=chem(i,kts,j,p_dust_4) * 1.e9
+               chem(i,kts,j,p_dust_5)=chem(i,kts,j,p_dust_5) * 1.e9
+            end do
+         end do   
+               
+
        case default
          errmsg = 'Logic error in catchem_chem_dust_wrapper_run: invalid dust_opt'
          errflg = 1
          return
          !store_arrays = .true.
       end select
+
+      
 
 
 

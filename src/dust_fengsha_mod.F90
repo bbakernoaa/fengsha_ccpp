@@ -136,7 +136,7 @@ CONTAINS
 
       ! Distribute emissions to bins and convert to mass flux (kg s-1)
       ! --------------------------------------------------------------
-      emissions = distribution(n) * total_emissions * q
+      emissions = distribution * total_emissions * q
 
 
    end subroutine DustEmissionFENGSHA
