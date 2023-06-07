@@ -14,7 +14,7 @@ module dust_fengsha_mod
 CONTAINS
 
 
-   subroutine DustEmissionFENGSHA(slc, clay, ssm, rdrag, airdens, ustar, uthrs, area, emissions)
+   subroutine DustEmissionFENGSHA(slc, clay, sandfrac, ssm, rdrag, airdens, ustar, uthrs, emissions)
 
       ! !USES:
       implicit NONE
@@ -23,6 +23,7 @@ CONTAINS
       real(kind=kind_chem), intent(in) :: slc      ! liquid water content of soil layer, volumetric fraction [1]
       real(kind=kind_chem), intent(in) :: clay     ! fractional clay content [1] - range: [0 1]
       ! real(kind=kind_chem), intent(in) :: silt     ! fractional silt content [1] - range: [0 1]
+      real(kind=kind_chem), intent(in) :: sandfrac
       real(kind=kind_chem), intent(in) :: ssm      ! erosion map [1] - range: [0 1]
       real(kind=kind_chem), intent(in) :: rdrag    ! drag partition [1/m] - range: [0 1]
       real(kind=kind_chem), intent(in) :: airdens  ! air density at lowest level [kg/m^3]
@@ -30,7 +31,7 @@ CONTAINS
       real(kind=kind_chem), intent(in) :: uthrs    ! threshold velocity [m/2]
       ! real(kind=kind_chem), intent(in) :: kvhmax   ! max. vertical to horizontal mass flux ratio [1]
       ! real(kind=kind_chem), intent(in) :: rhop     ! soil class density [kg/m^3]
-      real(kind=kind_chem), intent(in) :: area     ! area of dust emission (can be fractional area of grid cell)
+      ! real(kind=kind_chem), intent(in) :: area     ! area of dust emission (can be fractional area of grid cell)
 
       ! this will need to be read in by a configuration file
       ! right now I just hard coded it in dust_data_mod.F90
@@ -63,7 +64,7 @@ CONTAINS
       real(kind=kind_chem) :: total_emissions
       real(kind=kind_chem) :: u_sum, u_thresh
       real(kind=kind_chem) :: distribution(size(emissions))
-      real(kind=kind_chem) :: vsat, sandfrac, grvsoilm, vsoil, drylimit
+      real(kind=kind_chem) :: vsat, grvsoilm, vsoil, drylimit  ! FIXME: vsoil not set
 
       real(kind=kind_chem), parameter:: clay_thresh = 0.2
       real(kind=kind_chem), parameter :: rhow = 1000.
