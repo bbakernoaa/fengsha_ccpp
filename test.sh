@@ -2,7 +2,7 @@
 
 set -xeuo pipefail
 
-export FC=gfortran-10
+export FC=${FC:-gfortran-10}
 
 # FENGSHA
 make -C src clean

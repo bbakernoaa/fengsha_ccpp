@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        compiler: [gfortran-9, gfortran-10, gfortran-11]
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Debug compile and run
+        run: |
+          ./test.sh
+        env:
+          DEBUG: 1
+          FC: ${{ matrix.compiler }}
