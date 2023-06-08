@@ -175,7 +175,7 @@ contains
       endif
 
       ! -- volume to mass fraction conversion table (ppm -> ug/kg)
-      ! ppm2ugkg         = 1._kind_phys
+      ppm2ugkg         = 1._kind_phys
       ppm2ugkg(p_sulf) = 1.e+03_kind_phys * mw_so4_aer / mwdry
 
       ! -- compute accumulated large-scale and convective rainfall since last call
