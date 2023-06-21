@@ -9,7 +9,7 @@ $(info FC setting: '$(FC)')
 DEBUG ?= 1
 $(info DEBUG setting: '$(DEBUG)')
 ifeq ($(DEBUG), 1)
-  FCFLAGS := -g -Wall -Wextra -Wconversion -Og -pedantic -fcheck=bounds -fmax-errors=5
+  FCFLAGS := -g -Wall -Wextra -Og -pedantic -fcheck=all -ffpe-trap=invalid,zero,overflow -fbacktrace -fmax-errors=5
 else ifeq ($(DEBUG), 0)
   FCFLAGS := -O3
 else
