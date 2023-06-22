@@ -174,7 +174,7 @@ CONTAINS
       real(rk), parameter    :: lambda = 12.0         ! crack propagation length [um]
       real(rk), parameter    :: factor = 1.e0 / (sqrt(2.e0) * log(stddev))  ! auxiliary constant
 
-      character(len=*), parameter :: myname = 'DustAerosolDistributionKok'
+      ! character(len=*), parameter :: myname = 'DustAerosolDistributionKok'
 
       !EOP
       !-------------------------------------------------------------------------
