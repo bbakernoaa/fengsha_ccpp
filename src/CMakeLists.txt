@@ -1,4 +1,4 @@
-add_library(FENGSHA SHARED
+add_library(FENGSHA STATIC
     catchem_constants.F90
     catchem_config.F90
     dust_data_mod.F90
