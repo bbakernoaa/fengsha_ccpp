@@ -134,7 +134,10 @@ CONTAINS
       q = max(0._rk, rustar - u_thresh) * u_sum * u_sum
 
       ! get distribution 
-      call DustAerosolDistributionKok(dust_reff, dust_lower_radius, dust_upper_radius, distribution)
+      call DustAerosolDistributionKok( &
+         dust_reff * 1.e6_rk, dust_lower_radius * 1.e6_rk, dust_upper_radius * 1.e6_rk, &
+         distribution)
+         ! FIXME: should change the params to be in um or sr to use m so don't have to convert here
 
       ! Distribute emissions to bins and convert to mass flux (kg s-1)
       ! --------------------------------------------------------------
@@ -190,17 +193,11 @@ CONTAINS
          diameter = 2 * radius(n)
          dlam = diameter/lambda
          distribution(n) = diameter * (1. + erf(factor * log(diameter/mmd))) * exp(-dlam * dlam * dlam) * log(rUp(n)/rLow(n))
-         print *, factor, diameter, mmd, dlam
-         print *, log(diameter/mmd)
-         print *, 1 + erf(factor * log(diameter/mmd)), exp(-dlam * dlam * dlam), log(rUp(n)/rLow(n))
-         print *, (1. + erf(factor * log(diameter/mmd))) * exp(-dlam * dlam * dlam) * log(rUp(n)/rLow(n))
          dvol = dvol + distribution(n)
       end do
 
       !  Normalize distribution
-      print *, "radius = ", radius
-      print *, "distribution = ", distribution
-      print *, "dvol = ", dvol
+      ! TODO: check if dvol is 0, maybe error out?
       do n = 1, nbins
          distribution(n) = distribution(n) / dvol
       end do
