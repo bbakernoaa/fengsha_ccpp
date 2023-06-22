@@ -84,7 +84,6 @@ contains
       integer, parameter :: its=1, jts=1, jte=1, kts=1
 
       real(kind=kind_phys), dimension(im), intent(in) :: garea  ! grid cell area
-      real(kind=kind_phys), dimension(ims:im, jms:jme) :: vegfrac
 
       real(kind=kind_phys), dimension(im, nsoil), intent(in) :: smc       ! volumetric fraction of soil moisture for lsm
       real(kind=kind_phys), dimension(im, ndust), intent(in) :: dust_in   ! fengsha dust input !!! need to think about this or the future
@@ -104,21 +103,15 @@ contains
       real(kind=kind_phys), dimension(ims:im, jms:jme) :: sandf       ! sand fraction 
       real(kind=kind_phys), dimension(ims:im, jms:jme) :: clayf       ! clay fraction 
       real(kind_phys), dimension(ims:im, jms:jme, 1:ndust) :: dust_emis
-      real(kind_phys), dimension(ims:im, jms:jme) :: dusthelp
       integer,         dimension(ims:im, jms:jme) :: isltyp, ivgtyp
       real(kind_phys), dimension(ims:im, kms:kme, jms:jme, 1:num_moist)  :: moist
 
       real(kind_phys), parameter :: ugkg = 1.e-09_kind_phys !lzhang
       real(kind_phys), dimension(1:num_chem) :: ppm2ugkg
-      integer :: current_month
       real(kind_phys) :: dtstep
 
       ! Local Variables 
-      real(kind_phys) :: curr_secs
-      real(kind_phys) :: factor, factor2, factor3
-      logical :: store_arrays
-      integer :: nbegin, nv, nvv
-      integer :: i, j, jp, k, kp, n
+      integer :: i, j, k
       integer :: ide, ime, ite, kde
       real(kind_phys), dimension(ims:im,jms:jme) :: random_factor
 
@@ -142,12 +135,10 @@ contains
       character(len=*), intent(out) :: errmsg
       integer,          intent(out) :: errflg
 
-      real(kind_phys), dimension(1:im, 1:kme,jms:jme) :: rri, t_phy, u_phy, v_phy,       &
+      real(kind_phys), dimension(1:im, 1:kme,jms:jme) :: t_phy, &
          p_phy, z_at_w, dz8w, p8w, t8w, rho_phy
 
       real(kind_phys), dimension(ims:im, jms:jme) :: ust, dxy
-      real(kind_phys), parameter :: conver=1.e-9
-      real(kind_phys), parameter :: converi=1.e9
       !================================================================================
 
 
@@ -169,7 +160,9 @@ contains
       kde=kte
 
       if(do_sppt_emis) then
-         random_factor(:,jms) = pert_scale_dust*max(min(1+(sppt_wts(:,kme/2)-1)*emis_amp_dust,2.0),0.0)
+         random_factor(:,jms) = pert_scale_dust*max( &
+            min(1+(sppt_wts(:,kme/2)-1)*emis_amp_dust, 2.0_kind_phys), &
+            0.0_kind_phys)
       else
          random_factor = 1.0
       endif
@@ -241,7 +234,6 @@ contains
                chem(i,kts,j,p_dust_5)=chem(i,kts,j,p_dust_5) * 1.e9
             end do
          end do   
-               
 
        case default
          errmsg = 'Logic error in catchem_chem_dust_wrapper_run: invalid dust_opt'
@@ -249,10 +241,6 @@ contains
          return
          !store_arrays = .true.
       end select
-
-      
-
-
 
       ! -- put chem stuff back into tracer array
       do k=kts,kte
@@ -300,10 +288,17 @@ contains
       ids,ide, jds,jde, kds,kde,                                     &
       ims,ime, jms,jme, kms,kme,                                     &
       its,ite, jts,jte, kts,kte)
+      ! NOTE: currently many of the args above are unused
 
       !Chem input configuration
       integer, intent(in) :: ktau
       real(kind=kind_phys), intent(in) :: dtstep
+
+      !catchem Chem variables
+      integer,intent(in) ::  num_chem, num_moist
+      integer,intent(in) ::  ids,ide, jds,jde, kds,kde,                      &
+         ims,ime, jms,jme, kms,kme,                      &
+         its,ite, jts,jte, kts,kte
 
       !FV3 input variables
       integer, intent(in) :: nsoil
@@ -338,15 +333,7 @@ contains
       real(kind=kind_phys), dimension(ims:ime, kms:kme), intent(in) ::spechum
       real(kind=kind_phys), dimension(ims:ime, kts:kte,ntrac), intent(in) :: gq0
 
-
-      !catchem Chem variables
-      integer,intent(in) ::  num_chem,num_moist
-      integer,intent(in) ::  ids,ide, jds,jde, kds,kde,                      &
-         ims,ime, jms,jme, kms,kme,                      &
-         its,ite, jts,jte, kts,kte
-
       real(kind_phys), dimension(num_chem), intent(in) :: ppm2ugkg
-
 
       integer,dimension(ims:ime, jms:jme), intent(out) :: isltyp, ivgtyp
       ! real(kind_phys), dimension(ims:ime, jms:jme, 3), intent(inout) :: erod
@@ -373,8 +360,7 @@ contains
 
       ! -- local variables
 !   real(kind=kind_phys), dimension(ims:ime, kms:kme, jms:jme) :: p_phy
-      real(kind_phys) ::  factor,factor2,pu,pl
-      integer i,ip,j,jp,k,kp,kk,kkp,nv,l,ll,n
+      integer i,ip,j,jp,k,kp,kk,kkp
 
 
       ! -- initialize output arrays
@@ -442,7 +428,7 @@ contains
          jp = j - jts + 1
          do i=its,ite
             ip = i - its + 1
-            z_at_w(i,kts,j)=max(0.,ph3d(ip,1)/g)
+            z_at_w(i,kts,j)=max(0._kind_phys, ph3d(ip,1)/g)
          enddo
       enddo
 
