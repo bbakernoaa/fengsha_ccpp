@@ -17,7 +17,7 @@ endif()
 add_subdirectory(src)
 
 get_target_property(CFLAGS "FENGSHA" COMPILE_OPTIONS)
-if (CFLAGS AND NOT "${CFLAGS}" STREQUAL "")
+if (CFLAGS AND NOT CFLAGS STREQUAL "")
     message(STATUS "FENGHSA Fortran compiler flags: ${CFLAGS}")
 endif()
 
