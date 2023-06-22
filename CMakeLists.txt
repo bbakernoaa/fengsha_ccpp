@@ -22,3 +22,6 @@ if (CFLAGS AND NOT CFLAGS STREQUAL "")
 endif()
 
 add_subdirectory(driver/ccpp)
+
+include(CTest)
+add_subdirectory(test)

@@ -190,10 +190,17 @@ CONTAINS
          diameter = 2 * radius(n)
          dlam = diameter/lambda
          distribution(n) = diameter * (1. + erf(factor * log(diameter/mmd))) * exp(-dlam * dlam * dlam) * log(rUp(n)/rLow(n))
+         print *, factor, diameter, mmd, dlam
+         print *, log(diameter/mmd)
+         print *, 1 + erf(factor * log(diameter/mmd)), exp(-dlam * dlam * dlam), log(rUp(n)/rLow(n))
+         print *, (1. + erf(factor * log(diameter/mmd))) * exp(-dlam * dlam * dlam) * log(rUp(n)/rLow(n))
          dvol = dvol + distribution(n)
       end do
 
       !  Normalize distribution
+      print *, "radius = ", radius
+      print *, "distribution = ", distribution
+      print *, "dvol = ", dvol
       do n = 1, nbins
          distribution(n) = distribution(n) / dvol
       end do

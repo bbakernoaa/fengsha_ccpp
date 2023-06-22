@@ -4,5 +4,7 @@ set -xeuo pipefail
 
 export FC=${FC:-gfortran}
 
-cmake -B build
-cmake --build build
+BUILD_DIR=build
+cmake -B $BUILD_DIR
+cmake --build $BUILD_DIR
+ctest --test-dir $BUILD_DIR
