@@ -1,7 +1,7 @@
 module dust_fengsha_mod
 
-   use chem_config, only chem_kind, DUST_OPT_FENGSHA_FECAN
-   use constants
+   use catchem_config, only: DUST_OPT_FENGSHA_FECAN
+   use catchem_constants, only: rk => kind_chem, con_g
    use dust_data_mod
 
    implicit none
@@ -14,37 +14,38 @@ module dust_fengsha_mod
 CONTAINS
 
 
-   subroutine DustEmissionFENGSHA(slc, clay, ssm, rdrag, airdens, ustar, uthrs, area, emissions)
+   subroutine DustEmissionFENGSHA(slc, clay, sandfrac, ssm, rdrag, airdens, ustar, uthrs, emissions)
 
       ! !USES:
       implicit NONE
 
       ! !INPUT PARAMETERS:
-      real(kind=kind_chem), intent(in) :: slc      ! liquid water content of soil layer, volumetric fraction [1]
-      real(kind=kind_chem), intent(in) :: clay     ! fractional clay content [1] - range: [0 1]
-      ! real(kind=kind_chem), intent(in) :: silt     ! fractional silt content [1] - range: [0 1]
-      real(kind=kind_chem), intent(in) :: ssm      ! erosion map [1] - range: [0 1]
-      real(kind=kind_chem), intent(in) :: rdrag    ! drag partition [1/m] - range: [0 1]
-      real(kind=kind_chem), intent(in) :: airdens  ! air density at lowest level [kg/m^3]
-      real(kind=kind_chem), intent(in) :: ustar    ! friction velocity [m/sec]
-      real(kind=kind_chem), intent(in) :: uthrs    ! threshold velocity [m/2]
-      real(kind=kind_chem), intent(in) :: kvhmax   ! max. vertical to horizontal mass flux ratio [1]
-      ! real(kind=kind_chem), intent(in) :: rhop     ! soil class density [kg/m^3]
-      real(kind=kind_chem), intent(in) :: area     ! area of dust emission (can be fractional area of grid cell)
+      real(rk), intent(in) :: slc      ! liquid water content of soil layer, volumetric fraction [1]
+      real(rk), intent(in) :: clay     ! fractional clay content [1] - range: [0 1]
+      ! real(rk), intent(in) :: silt     ! fractional silt content [1] - range: [0 1]
+      real(rk), intent(in) :: sandfrac
+      real(rk), intent(in) :: ssm      ! erosion map [1] - range: [0 1]
+      real(rk), intent(in) :: rdrag    ! drag partition [1/m] - range: [0 1]
+      real(rk), intent(in) :: airdens  ! air density at lowest level [kg/m^3]
+      real(rk), intent(in) :: ustar    ! friction velocity [m/sec]
+      real(rk), intent(in) :: uthrs    ! threshold velocity [m/2]
+      ! real(rk), intent(in) :: kvhmax   ! max. vertical to horizontal mass flux ratio [1]
+      ! real(rk), intent(in) :: rhop     ! soil class density [kg/m^3]
+      ! real(rk), intent(in) :: area     ! area of dust emission (can be fractional area of grid cell)
 
       ! this will need to be read in by a configuration file
       ! right now I just hard coded it in dust_data_mod.F90
       !=====================================================
-      ! real(kind=kind_chem), intent(in) :: alpha    ! scaling factor [1]
-      ! real(kind=kind_chem), intent(in) :: gamma    ! scaling factor [1]
-      ! integer(kind=kind_chem),  intent(in) :: nbins    ! number of dust bins
-      ! real(kind=kind_chem), dimension(:), intent(in) :: upper_bin ! upper bin size
-      ! real(kind=kind_chem), dimension(:), intent(in) :: reff ! upper bin size
-      ! real(kind=kind_chem), dimension(:), intent(in) :: lower_bin ! lower bin size
+      ! real(rk), intent(in) :: alpha    ! scaling factor [1]
+      ! real(rk), intent(in) :: gamma    ! scaling factor [1]
+      ! integer(rk),  intent(in) :: nbins    ! number of dust bins
+      ! real(rk), dimension(:), intent(in) :: upper_bin ! upper bin size
+      ! real(rk), dimension(:), intent(in) :: reff ! upper bin size
+      ! real(rk), dimension(:), intent(in) :: lower_bin ! lower bin size
       !=====================================================
 
       ! !OUTPUT PARAMETERS:
-      REAL(kind=kind_chem), dimension(:), intent(inout) :: emissions ! binned surface emissions [kg/(m^2 sec)]
+      REAL(rk), dimension(:), intent(inout) :: emissions ! binned surface emissions [kg/(m^2 sec)]
 
       ! !DESCRIPTION: Compute dust emissions using NOAA/ARL FENGSHA model
       !
@@ -55,17 +56,18 @@ CONTAINS
       ! 09Aug2022 B.Baker/NOAA    - Adapted for CCPP-Physics
 
       ! !Local Variables
-      real(kind=kind_chem)                  :: alpha_grav
-      real(kind=kind_chem)                  :: h
-      real(kind=kind_chem)                  :: kvh
-      real(kind=kind_chem)                  :: q
-      real(kind=kind_chem)                  :: rustar
-      real(kind=kind_chem)                  :: total_emissions
-      real(kind=kind_chem)                  :: u_sum, u_thresh
-      real(kind=kind_chem), dimension(:)    :: distribution
+      real(rk) :: alpha_grav
+      real(rk) :: h
+      real(rk) :: kvh
+      real(rk) :: q
+      real(rk) :: rustar
+      real(rk) :: total_emissions
+      real(rk) :: u_sum, u_thresh
+      real(rk) :: distribution(size(emissions))
+      real(rk) :: vsat, grvsoilm, vsoil, drylimit  ! FIXME: vsoil not set
 
-      real(kind=kind_chem), parameter:: clay_thresh = 0.2
-      real(kind=kind_chem), parameter :: rhow = 1000.
+      real(rk), parameter:: clay_thresh = 0.2
+      real(rk), parameter :: rhow = 1000.
 
       !EOP
       !-------------------------------------------------------------------------
@@ -99,7 +101,7 @@ CONTAINS
       !  ----------------------------------------------
       ! Fecan moisture correction
       ! -------------------------
-      if (DUST_OPT_FENGSHA_FECAN .eq. .true.) then
+      if (DUST_OPT_FENGSHA_FECAN .eqv. .true.) then
          !  Saturated volumetric water content (sand-dependent) ! [m3 m-3]
          vsat = 0.489 - 0.00126 * ( 100. * sandfrac )
 
@@ -110,7 +112,7 @@ CONTAINS
          drylimit = clay * (14.0 * clay + 17.0)
 
          !  Compute soil moisture correction
-         h = sqrt(1.0 + 1.21 * max(0., grvsoilm - drylimit)**0.68)
+         h = sqrt(1.0 + 1.21 * max(0._rk, grvsoilm - drylimit)**0.68)
       else
          ! Shao soil mositure
          !--------------------
@@ -129,10 +131,13 @@ CONTAINS
 
       ! Compute Horizontal Saltation Flux according to Eq (9) in Webb et al. (2020)
       ! ---------------------------------------------------------------------------
-      q = max(0., rustar - u_thresh) * u_sum * u_sum
+      q = max(0._rk, rustar - u_thresh) * u_sum * u_sum
 
       ! get distribution 
-      call DustAerosolDistributionKok(dust_reff, dust_lower_radius, dust_upper_radius, distribution)
+      call DustAerosolDistributionKok( &
+         dust_reff * 1.e6_rk, dust_lower_radius * 1.e6_rk, dust_upper_radius * 1.e6_rk, &
+         distribution)
+         ! FIXME: should change the params to be in um or sr to use m so don't have to convert here
 
       ! Distribute emissions to bins and convert to mass flux (kg s-1)
       ! --------------------------------------------------------------
@@ -147,11 +152,11 @@ CONTAINS
       implicit NONE
 
       ! !INPUT PARAMETERS:
-      real, dimension(:), intent(in)  :: radius      ! Dry particle bin effective radius [um]
-      real, dimension(:), intent(in)  :: rLow, rUp   ! Dry particle bin edge radii [um]
+      real(rk), dimension(:), intent(in)  :: radius      ! Dry particle bin effective radius [um]
+      real(rk), dimension(:), intent(in)  :: rLow, rUp   ! Dry particle bin edge radii [um]
 
       ! !OUTPUT PARAMETERS:
-      real, dimension(:), intent(out) :: distribution    ! Normalized dust aerosol distribution [1]
+      real(rk), dimension(:), intent(out) :: distribution    ! Normalized dust aerosol distribution [1]
 
       ! !DESCRIPTION: Computes lognormal aerosol size distribution for dust bins according to
       !               J.F.Kok, PNAS, Jan 2011, 108 (3) 1016-1021; doi:10.1073/pnas.1014798108
@@ -164,15 +169,15 @@ CONTAINS
 
       ! !Local Variables
       integer :: n, nbins
-      real    :: diameter, dlam, dvol
+      real(rk)    :: diameter, dlam, dvol
 
       !   !CONSTANTS
-      real, parameter    :: mmd    = 3.4          ! median mass diameter [um]
-      real, parameter    :: stddev = 3.0          ! geometric standard deviation [1]
-      real, parameter    :: lambda = 12.0         ! crack propagation length [um]
-      real, parameter    :: factor = 1.e0 / (sqrt(2.e0) * log(stddev))  ! auxiliary constant
+      real(rk), parameter    :: mmd    = 3.4          ! median mass diameter [um]
+      real(rk), parameter    :: stddev = 3.0          ! geometric standard deviation [1]
+      real(rk), parameter    :: lambda = 12.0         ! crack propagation length [um]
+      real(rk), parameter    :: factor = 1.e0 / (sqrt(2.e0) * log(stddev))  ! auxiliary constant
 
-      character(len=*), parameter :: myname = 'DustAerosolDistributionKok'
+      ! character(len=*), parameter :: myname = 'DustAerosolDistributionKok'
 
       !EOP
       !-------------------------------------------------------------------------
@@ -192,6 +197,7 @@ CONTAINS
       end do
 
       !  Normalize distribution
+      ! TODO: check if dvol is 0, maybe error out?
       do n = 1, nbins
          distribution(n) = distribution(n) / dvol
       end do
