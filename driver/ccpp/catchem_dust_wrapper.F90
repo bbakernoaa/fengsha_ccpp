@@ -205,7 +205,7 @@ contains
          do j=jts,jte
             do i=its,ite
 
-               call DustEmissionFENGSHA(smois(i,1,j), clayf(i,j), sandf(i,j), ssm(i,j), &  ! FIXME: smois has nsoil dim
+               call DustEmissionFENGSHA(smois(i,1,j), clayf(i,j), sandf(i,j), ssm(i,j), &
                   rdrag(i,j), rho_phy(i,j,1), &
                   ust(i,j), uthr(i,j), &
                   dust_emis(i,j,:))
