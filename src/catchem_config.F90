@@ -5,12 +5,12 @@
 !
 module catchem_config
 
-    use catchem_constants, only : kind_chem
+    use catchem_constants, only: rk => kind_chem
   
     implicit none
   
     !-- constant paramters
-    real(kind=kind_chem), parameter :: epsilc     = 1.e-30
+    real(rk), parameter :: epsilc     = 1.e-30
   
     !-- chemistry module configurations
     integer :: chem_opt = 300
@@ -26,7 +26,7 @@ module catchem_config
     integer :: aer_ra_frq=60
     integer :: wetdep_ls_opt = 1
   
-    real(kind=kind_chem), parameter :: depo_fact=0.
+    real(rk), parameter :: depo_fact=0.
     integer, parameter :: CHEM_OPT_GOCART= 300
     integer, parameter :: CHEM_OPT_GOCART_RACM  = 301
     integer, parameter :: CHEM_OPT_RACM_SOA_VBS = 108
@@ -58,7 +58,7 @@ module catchem_config
     integer, parameter :: DUST_OPT_GOCART  = 1
     integer, parameter :: DUST_OPT_AFWA    = 3
     integer, parameter :: DUST_OPT_FENGSHA = 5
-    integer, parameter :: DUST_OPT_FENGSHA_FECAN = .true.
+    logical, parameter :: DUST_OPT_FENGSHA_FECAN = .true.
 
   
     ! -- biomass burning emissions
@@ -84,7 +84,7 @@ module catchem_config
     !integer :: num_plume_data  
   
   
-    real(kind=kind_chem) :: wetdep_ls_alpha(chem_tune_tracers)=-999.
+    real(rk) :: wetdep_ls_alpha(chem_tune_tracers)=-999.
   
     ! =======================================================================================
     !-- tracers !!!! NEED A MORE DYNAMIC WAY TO SET THIS ---- CANNOT HARD CODE IN THE FUTURE
@@ -116,11 +116,11 @@ module catchem_config
     integer :: p_ho=0,p_h2o2=0,p_no3=0
   
     ! constants
-    real(kind=kind_chem), PARAMETER :: airmw      = 28.97
-    real(kind=kind_chem), PARAMETER :: mw_so2_aer = 64.066
-    real(kind=kind_chem), PARAMETER :: mw_so4_aer = 96.066
-    real(kind=kind_chem), parameter :: smw        = 32.00
-    real(kind=kind_chem), parameter :: mwdry      = 28.
+    real(rk), PARAMETER :: airmw      = 28.97
+    real(rk), PARAMETER :: mw_so2_aer = 64.066
+    real(rk), PARAMETER :: mw_so4_aer = 96.066
+    real(rk), parameter :: smw        = 32.00
+    real(rk), parameter :: mwdry      = 28.
   !  <mw>d is the molecular weight of dry air (28.966), <mw>w/<mw>d = 0.62197, and
   !  (<mw>d - <mw>w)/<mw>d = 0.37803
   !  http://atmos.nmsu.edu/education_and_outreach/encyclopedia/humidity.htm
