@@ -45,7 +45,7 @@ CONTAINS
       !=====================================================
 
       ! !OUTPUT PARAMETERS:
-      REAL(rk), dimension(:), intent(inout) :: emissions ! binned surface emissions [kg/(m^2 sec)]
+      REAL(rk), dimension(:), intent(inout) :: emissions ! binned surface emissions [kg s-1]
 
       ! !DESCRIPTION: Compute dust emissions using NOAA/ARL FENGSHA model
       !

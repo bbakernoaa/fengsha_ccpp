@@ -219,7 +219,7 @@ contains
                chem(i,kts,j,p_dust_4)=chem(i,kts,j,p_dust_4) * 1.0e-9
                chem(i,kts,j,p_dust_5)=chem(i,kts,j,p_dust_5) * 1.0e-9
 
-               ! now add dust emissions back to cocentration fields
+               ! now add dust emissions back to concentration fields
                chem(i,kts,j,p_dust_1)=chem(i,kts,j,p_dust_1) + dust_emis(i,j,1) / rho_phy(i,j,1)
                chem(i,kts,j,p_dust_2)=chem(i,kts,j,p_dust_2) + dust_emis(i,j,2) / rho_phy(i,j,1)
                chem(i,kts,j,p_dust_3)=chem(i,kts,j,p_dust_3) + dust_emis(i,j,1) / rho_phy(i,j,1)
