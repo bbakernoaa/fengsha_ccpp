@@ -64,7 +64,7 @@ CONTAINS
       real(rk) :: total_emissions
       real(rk) :: u_sum, u_thresh
       real(rk) :: distribution(size(emissions))
-      real(rk) :: vsat, grvsoilm, vsoil, drylimit  ! FIXME: vsoil not set
+      real(rk) :: vsat, grvsoilm, drylimit
 
       real(rk), parameter:: clay_thresh = 0.2
       real(rk), parameter :: rhow = 1000.
@@ -106,7 +106,7 @@ CONTAINS
          vsat = 0.489 - 0.00126 * ( 100. * sandfrac )
 
          !  Gravimetric soil content
-         grvsoilm = vsoil * rhow / (dust_den * (1. - vsat))
+         grvsoilm = slc * rhow / (dust_den * (1. - vsat))
 
          !   Compute fecan dry limit
          drylimit = clay * (14.0 * clay + 17.0)
